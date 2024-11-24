@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Blog</title>
+    <style>
+        /* Styles omitted for brevity */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 1rem 0;
+            text-align: center;
+            position: relative;
+        }
+        header .buttons {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        header .buttons button {
+            padding: 10px 20px;
+            background-color: #fff;
+            color: #333;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        .post {
+            background: #fff;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .post h2 {
+            margin-top: 0;
+        }
+        .post p {
+            line-height: 1.6;
+        }
+        .post .meta {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+        .new-post, .update-post {
+            background: #fff;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .new-post input, .new-post textarea,
+        .update-post input, .update-post textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .new-post button, .update-post button {
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .post button {
+            background-color: #e74c3c;
+            border: none;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .post button.update {
+            background-color: #3498db;
+        }
+        .upload-photo {
+            margin-top: 20px;
+        }
+        .upload-photo button {
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>My Simple Blog</h1>
+            <div class="buttons">
+                <button onclick="login()">Login</button>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+    <div class="container">
+        <div id="posts"></div>
+        <div class="new-post">
+            <h2>Add a New Post</h2>
+            <input type="text" id="new-title" placeholder="Title">
+            <input type="text" id="new-date" placeholder="Date">
+            <input type="text" id="new-author" placeholder="Author">
+            <textarea id="new-content" placeholder="Content"></textarea>
+            <button onclick="addPost()">Add Post</button>
+        </div>
+        <div class="update-post" style="display:none;">
+            <h2>Update Post</h2>
+            <input type="text" id="update-title" placeholder="Title">
+            <input type="text" id="update-date" placeholder="Date">
+            <input type="text" id="update-author" placeholder="Author">
+            <textarea id="update-content" placeholder="Content"></textarea>
+            <button onclick="updatePost()">Update Post</button>
+        </div>
+        <div class="upload-photo">
+            <h2>Upload Photo</h2>
+            <input type="file" id="photo">
+            <button onclick="uploadPhoto()">Upload Photo</button>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2024 My Simple Blog</p>
+    </footer>
+
+    <script>
+        const apiUrl = '/api/posts';
+
+        async function fetchPosts() {
+            const response = await fetch(apiUrl);
+            const posts = await response.json();
+            const postsDiv = document.getElementById('posts');
+            postsDiv.innerHTML = '';
+            posts.forEach(post => {
+                postsDiv.innerHTML += `
+                    <div class="post" id="post-${post._id}">
+                        <h2>${post.title}</h2>
+                        <p class="meta">By ${post.author} on ${post.date}</p>
+                        <p>${post.content}</p>
+                        <button onclick="deletePost('${post._id}')">Delete</button>
+                        <button class="update" onclick="showUpdatePostForm('${post._id}', '${post.title}', '${post.date}', '${post.author}', '${post.content}')">Update</button>
+                    </div>
+                `;
+            });
+        }
+
+        async function addPost() {
+            const title = document.getElementById('new-title').value;
+            const date = document.getElementById('new-date').value;
+            const author = document.getElementById('new-author').value;
+            const content = document.getElementById('new-content').value;
+
+            await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, date, author, content })
+            });
+
+            fetchPosts();
+        }
+
+        async function updatePost() {
+            const id = document.getElementById('update-id').value;
+            const title = document.getElementById('update-title').value;
+            const date = document.getElementById('update-date').value;
+            const author = document.getElementById('update-author').value;
+            const content = document.getElementById('update-content').value;
+
+            await fetch(`${apiUrl}/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, date, author, content })
+            });
+
+            document.querySelector('.update-post').style.display = 'none';
+            fetchPosts();
+        }
+
+        async function deletePost(id) {
+            await fetch(`${apiUrl}/${id}`, {
+                method: 'DELETE'
+            });
+
+            fetchPosts();
+        }
+
+        function showUpdatePostForm(id, title, date, author, content) {
+            document.getElementById('update-title').value = title;
+            document.getElementById('update-date').value = date;
+            document.getElementById('update-author').value = author;
+            document.getElementById('update-content').value = content;
+            document.querySelector('.update-post').style.display = 'block';
+        }
+
+        async function uploadPhoto() {
+            const fileInput = document.getElementById('photo');
+            const file = fileInput.files[0];
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            alert('Photo uploaded successfully!');
+        }
+
+        function login() {
+            window.location.href = '/login';
+        }
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        fetchPosts();
+    </script>
+</body>
+</html>
