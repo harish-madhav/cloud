@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        input,
+        button {
+            margin: 5px;
+            padding: 10px;
+        }
+
+        pre {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+    <script>
+        async function getData() {
+            const response = await fetch('/api');
+            const data = await response.json();
+            document.getElementById('output').innerHTML = JSON.stringify(data, null, 2);
+        }
+
+        async function addData() {
+            const name = document.getElementById('name').value;
+            const course = document.getElementById('course').value;
+            const roll_no = document.getElementById('roll_no').value;
+
+            const response = await fetch('/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, course, roll_no })
+            });
+
+            if (response.ok) {
+                alert('Data added successfully');
+                getData();
+            } else {
+                alert('Failed to add data');
+            }
+        }
+
+        async function updateData() {
+            const id = document.getElementById('update_id').value;
+            const name = document.getElementById('update_name').value;
+            const course = document.getElementById('update_course').value;
+            const roll_no = document.getElementById('update_roll_no').value;
+
+            const response = await fetch(`/api/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, course, roll_no })
+            });
+
+            if (response.ok) {
+                alert('Data updated successfully');
+                getData();
+            } else {
+                alert('Failed to update data');
+            }
+        }
+
+        async function patchData() {
+            const id = document.getElementById('patch_id').value;
+            const name = document.getElementById('patch_name').value;
+            const course = document.getElementById('patch_course').value;
+            const roll_no = document.getElementById('patch_roll_no').value;
+
+            const dataToUpdate = {};
+            if (name) dataToUpdate.name = name;
+            if (course) dataToUpdate.course = course;
+            if (roll_no) dataToUpdate.roll_no = roll_no;
+
+            const response = await fetch(`/api/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToUpdate)
+            });
+
+            if (response.ok) {
+                alert('Data patched successfully');
+                getData();
+            } else {
+                alert('Failed to patch data');
+            }
+        }
+
+        async function deleteData() {
+            const id = document.getElementById('delete_id').value;
+
+            const response = await fetch(`/api/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Data deleted successfully');
+                getData();
+            } else {
+                alert('Failed to delete data');
+            }
+        }
+
+        window.onload = getData;
+    </script>
+</head>
+
+<body>
+    <h1>Student Management</h1>
+    <div>
+        <h2>Add Student</h2>
+        <input type="text" id="name" placeholder="Name">
+        <input type="text" id="course" placeholder="Course">
+        <input type="text" id="roll_no" placeholder="Roll No">
+        <button onclick="addData()">Add Data</button>
+    </div>
+    <div>
+        <h2>Update Student</h2>
+        <input type="text" id="update_id" placeholder="ID">
+        <input type="text" id="update_name" placeholder="Name">
+        <input type="text" id="update_course" placeholder="Course">
+        <input type="text" id="update_roll_no" placeholder="Roll No">
+        <button onclick="updateData()">Update Data</button>
+    </div>
+    <div>
+        <h2>Patch Student Data</h2>
+        <input type="text" id="patch_id" placeholder="ID">
+        <input type="text" id="patch_name" placeholder="Name (optional)">
+        <input type="text" id="patch_course" placeholder="Course (optional)">
+        <input type="text" id="patch_roll_no" placeholder="Roll No (optional)">
+        <button onclick="patchData()">Patch Data</button>
+    </div>
+    <div>
+        <h2>Delete Student</h2>
+        <input type="text" id="delete_id" placeholder="ID">
+        <button onclick="deleteData()">Delete Data</button>
+    </div>
+    <h2>Student Data</h2>
+    <pre id="output"></pre>
+</body>
+
+</html>
