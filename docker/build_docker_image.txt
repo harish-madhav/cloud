@@ -1,0 +1,21 @@
+sudo apt update
+sudo apt upgrade
+sudo apt install docker.io
+sudo systemctl start docker
+sudo systemctl enable docker
+mkdir docker_ab
+cd docker_ab
+nano sum.py
+
+n=int(input("Enter n: "))
+result=sum(range(1,n+1))
+print(f"Sum of 1 to {n}: {result}")
+
+nano Dockerfile 	#file name must be "Dockerfile"
+
+from python:3.9
+copy sum.py /sum.py
+cmd ["python3", "/sum.py"]
+
+sudo docker build -t sum_image .
+sudo docker run -it sum_image

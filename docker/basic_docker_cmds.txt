@@ -1,0 +1,39 @@
+sudo apt install docker.io
+
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo systemctl status docker
+
+sudo docker ps -a
+sudo docker ps -l
+
+sudo docker pull ubuntu
+sudo docker run ubuntu
+sudo docker run ubuntu echo "hello from docker image"
+sudo docker run -it ubuntu
+
+sudo docker stop <container_id>
+sudo docker start <container_id>
+sudo docker restart <container_id>
+sudo docker rm -f <container_id> #forcefully remove
+sudo docker rm -v <container_id> #remove volumes
+
+sudo docker images
+sudo docker rmi -f <image_name>
+
+sudo docker exec <container_id> <cmd>  #sudo docker 00224fba2f96 exec /bin/bash
+
+sudo docker login
+sudo docker info
+sudo docker history --human <image_name>
+sudo docker search <image_name>
+
+sudo docker update --cpus 2 <container_id>
+sudo docker update --memory 500M <container_id>
+
+docker volume create
+docker volume ls
+docker logout
+
+
+
