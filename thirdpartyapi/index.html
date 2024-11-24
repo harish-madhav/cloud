@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Dog</title>
+</head>
+
+<body>
+    <h1>Random Dog Media</h1>
+    <button id="fetchDog">Get Random Dog</button>
+    <div>
+        <img id="dogImage" src="" alt="Random Dog" style="max-width: 400px; display: none;">
+        <video id="dogVideo" controls style="max-width: 400px; display: none;"></video>
+    </div>
+
+    <script>
+        document.getElementById("fetchDog").addEventListener("click", () => {
+            fetch('https://random.dog/woof.json')
+                .then(response => response.json())
+                .then(data => {
+                    const dogImage = document.getElementById("dogImage");
+                    const dogVideo = document.getElementById("dogVideo");
+
+                    const mediaUrl = data.url;
+
+                    if (mediaUrl.endsWith(".mp4") || mediaUrl.endsWith(".webm")) {
+                        // Display video
+                        dogImage.style.display = "none";
+                        dogVideo.style.display = "block";
+                        dogVideo.src = mediaUrl;
+                    } else {
+                        // Display image
+                        dogVideo.style.display = "none";
+                        dogImage.style.display = "block";
+                        dogImage.src = mediaUrl;
+                    }
+                })
+                .catch(error => console.error('Error fetching dog media:', error));
+        });
+    </script>
+</body>
+
+</html>
