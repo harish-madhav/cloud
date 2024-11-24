@@ -1,0 +1,84 @@
+/* General Body Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Container for the Forms */
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Styling */
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+h2 {
+    color: #444;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* Form Styling */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Form Labels */
+label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+/* Form Inputs */
+input[type="text"],
+input[type="number"],
+select {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+input[type="submit"] {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Spacing between Forms */
+form + form {
+    margin-top: 30px;
+}
+
+/* Optional: Add responsiveness for smaller screens */
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+    }
+
+    input[type="submit"] {
+        padding: 8px 12px;
+    }
+}
