@@ -1,0 +1,245 @@
+
+sudo apt update
+sudo apt install openjdk-8-jdk -y
+java -version
+nano ~/.bashrc
+
+end:
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export PATH=$PATH:/usr/lib/jvm/java-8-openjdk-amd64/bin
+export HADOOP_HOME=~/hadoop-3.2.4
+export PATH=$PATH:$HADOOP_HOME/bin
+export PATH=$PATH:$HADOOP_HOME/sbin
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+export HADOOP_OPTS="-Djava.library.path=$HADOOP_HOME/lib/native"
+export HADOOP_STREAMING=$HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-3.2.4.jar
+export HADOOP_LOG_DIR=$HADOOP_HOME/logs
+export PDSH_RCMD_TYPE=ssh
+
+source ~/.bashrc
+
+sudo apt-get install ssh -y
+ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+chmod 0600 ~/.ssh/authorized_keys
+ssh localhost
+
+
+ wget https://downloads.apache.org/hadoop/common/hadoop-3.2.4/hadoop-3.2.4.tar.gz
+
+tar -zxvf hadoop-3.2.4.tar.gz -C ~/
+nano ~/hadoop-3.2.4/etc/hadoop/hadoop-env.sh
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+ nano ~/hadoop-3.2.4/etc/hadoop/core-site.xml
+ <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://localhost:9000</value>
+ </property>
+ <property>
+    <name>hadoop.proxyuser.dataflair.groups</name>
+    <value>*</value>
+ </property>
+ <property>
+    <name>hadoop.proxyuser.dataflair.hosts</name>
+    <value>*</value>
+ </property>
+ <property>
+    <name>hadoop.proxyuser.server.hosts</name>
+    <value>*</value>
+ </property>
+ <property>
+    <name>hadoop.proxyuser.server.groups</name>
+<value>*</value>
+ </property>
+
+
+nano ~/hadoop-3.2.4/etc/hadoop/hdfs-site.xml
+<property>
+    <name>dfs.replication</name>
+    <value>1</value>
+ </property>
+
+cp ~/hadoop-3.2.4/etc/hadoop/mapred-site.xml.template ~/hadoop-3.2.4/etc/hadoop/mapred-site.xml
+
+
+ nano ~/hadoop-3.2.4/etc/hadoop/mapred-site.xml
+<property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+ </property>
+ <property>
+    <name>mapreduce.application.classpath</name>
+    <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*</value>
+ </property>
+
+spark-submit --class MainClass --master yarn YourSparkApp.jar /input /output
+
+hadoop fs -cat /output/part-00000
+
+nano ~/hadoop-3.2.4/etc/hadoop/yarn-site.xml
+<property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+ </property>
+ <property>
+    <name>yarn.nodemanager.env-whitelist</name>
+    <value>JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH</value>
+ </property>
+
+~/hadoop-3.2.4/bin/hdfs namenode -format
+start-all.sh
+http://localhost:9870
+hadoop fs -mkdir /user
+echo "Hello, Hadoop 3.2.4!" > hello.txt
+hadoop fs -put hello.txt /user
+hadoop fs -ls /user
+hadoop fs -cat /user/hello.txt
+
+c code 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MAX_WORD_LEN 100
+#define HASH_SIZE 1000
+
+// Node structure for storing words and their counts
+typedef struct WordNode {
+    char word[MAX_WORD_LEN];
+    int count;
+    struct WordNode* next;
+} WordNode;
+
+// Hash table for storing words and counts
+WordNode* hashTable[HASH_SIZE];
+
+// Function to calculate hash value for a word
+unsigned int hash(char* word) {
+    unsigned int hashValue = 0;
+    while (*word) {
+        hashValue = (hashValue * 31) + tolower(*word);
+        word++;
+    }
+    return hashValue % HASH_SIZE;
+}
+
+// Function to insert word into hash table and update count
+void insertWord(char* word) {
+    unsigned int index = hash(word);
+    WordNode* node = hashTable[index];
+    
+    // Traverse the linked list at the hash table index
+    while (node != NULL) {
+        if (strcmp(node->word, word) == 0) {
+            node->count++;
+            return;
+        }
+        node = node->next;
+    }
+    
+    // Word not found, so insert a new node
+    WordNode* newNode = (WordNode*)malloc(sizeof(WordNode));
+    strcpy(newNode->word, word);
+    newNode->count = 1;
+    newNode->next = hashTable[index];
+    hashTable[index] = newNode;
+}
+
+// Function to clean the word by removing non-alphabetical characters
+void cleanWord(char* word) {
+    char clean[MAX_WORD_LEN];
+    int j = 0;
+    for (int i = 0; word[i] != '\0'; i++) {
+        if (isalpha(word[i])) {
+            clean[j++] = tolower(word[i]);
+        }
+    }
+    clean[j] = '\0';
+    strcpy(word, clean);
+}
+
+// Function to read the input text file and process words
+void processFile(FILE* inputFile) {
+    char word[MAX_WORD_LEN];
+    while (fscanf(inputFile, "%s", word) != EOF) {
+        cleanWord(word);
+        if (strlen(word) > 0) {
+            insertWord(word);
+        }
+    }
+}
+
+// Function to write the word counts to the output file
+void writeOutput(FILE* outputFile) {
+    for (int i = 0; i < HASH_SIZE; i++) {
+        WordNode* node = hashTable[i];
+        while (node != NULL) {
+            fprintf(outputFile, "%s %d\n", node->word, node->count);
+            node = node->next;
+        }
+    }
+}
+
+// Function to free the allocated memory for the hash table
+void freeHashTable() {
+    for (int i = 0; i < HASH_SIZE; i++) {
+        WordNode* node = hashTable[i];
+        while (node != NULL) {
+            WordNode* temp = node;
+            node = node->next;
+            free(temp);
+        }
+    }
+}
+
+int main() {
+    char inputFileName[100];
+    char outputFileName[100];
+
+    // Get input and output file names from the user
+    printf("Enter the name of the input text file: ");
+    scanf("%s", inputFileName);
+    printf("Enter the name of the output text file: ");
+    scanf("%s", outputFileName);
+
+    // Open input file for reading
+    FILE* inputFile = fopen(inputFileName, "r");
+    if (inputFile == NULL) {
+        fprintf(stderr, "Error: Could not open input file %s\n", inputFileName);
+        return 1;
+    }
+
+    // Open output file for writing
+    FILE* outputFile = fopen(outputFileName, "w");
+    if (outputFile == NULL) {
+        fprintf(stderr, "Error: Could not open output file %s\n", outputFileName);
+        fclose(inputFile);
+        return 1;
+    }
+
+    // Process the input file and build the word count
+    processFile(inputFile);
+    writeOutput(outputFile);
+
+    // Close the files
+    fclose(inputFile);
+    fclose(outputFile);
+
+    // Free allocated memory for hash table
+    freeHashTable();
+
+    printf("Word count has been written to %s\n", outputFileName);
+
+    return 0;
+}
+
+
+run the code
+gcc -o mapred mapred.c
+
+./mapred
