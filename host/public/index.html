@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Firestore Input</title>
+  <script type="module">
+    // Firebase configuration
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAjAYl5SjfpuFXQMpnRhSZVsRC20xhjvAU",
+      authDomain: "labprjt.firebaseapp.com",
+      projectId: "labprjt",
+      storageBucket: "labprjt.firebasestorage.app",
+      messagingSenderId: "83914368875",
+      appId: "1:83914368875:web:13d01c908429eefb54ce2e"
+    };
+
+    // Import Firebase SDK modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Form submission handler
+    document.getElementById('dataForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const age = document.getElementById('age').value;
+
+      try {
+        // Add data to Firestore
+        await addDoc(collection(db, 'users'), { name, age: Number(age) });
+        alert('Data successfully stored in Firestore!');
+      } catch (error) {
+        console.error('Error adding document: ', error);
+        alert('Failed to store data.');
+      }
+
+      // Reset form
+      e.target.reset();
+    });
+  </script>
+</head>
+
+<body>
+  <h1>Store Name and Age in Firestore</h1>
+  <form id="dataForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" required><br><br>
+    <label for="age">Age:</label>
+    <input type="number" id="age" required><br><br>
+    <button type="submit">Submit</button>
+  </form>
+</body>
+
+</html>
