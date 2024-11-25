@@ -8,23 +8,27 @@ int main(int argc, char* argv[]) {
     int global_max = INT_MIN;
     int local_max = INT_MIN;
     int *array = NULL, *local_array = NULL;
-    int array_size = 100; // Adjust as needed
-    int chunk_size;
+    int array_size = 0, chunk_size;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     if (rank == 0) {
+        printf("Enter the size of the array: ");
+        scanf("%d", &array_size);
         array = (int *)malloc(array_size * sizeof(int));
+
+        printf("Enter the elements of the array:\n");
         for (int i = 0; i < array_size; i++) {
-            array[i] = rand() % 1000; // Fill with random numbers
+            scanf("%d", &array[i]);
         }
     }
 
-    chunk_size = array_size / size;
+    // Broadcast array size to all processes
+    MPI_Bcast(&array_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // Allocate memory for local arrays
+    chunk_size = array_size / size;
     local_array = (int *)malloc(chunk_size * sizeof(int));
 
     // Scatter the array to all processes
