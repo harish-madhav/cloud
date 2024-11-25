@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropbox File Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input[type="file"],
+        input[type="text"],
+        button {
+            margin-right: 10px;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            margin-bottom: 10px;
+        }
+
+        .file-item button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Dropbox File Manager</h1>
+
+    <h2>Upload Image to Dropbox</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="file" accept="image/*" required />
+        <button type="submit">Upload</button>
+    </form>
+    <div id="uploadMessage"></div>
+
+    <h2>Delete Image from Dropbox</h2>
+    <form id="deleteForm">
+        <input type="text" name="filename" placeholder="Enter filename to delete" required />
+        <button type="submit">Delete</button>
+    </form>
+    <div id="deleteMessage"></div>
+
+    <h2>Dropbox Files</h2>
+    <div id="fileList" class="file-list"></div>
+
+    <script>
+        async function fetchFileList() {
+            const response = await fetch('/files');
+            const files = await response.json();
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            if (files.length === 0) {
+                fileList.textContent = 'No files found.';
+                return;
+            }
+
+            files.forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'file-item';
+                div.textContent = file.name;
+
+                const downloadButton = document.createElement('button');
+                downloadButton.textContent = 'Download';
+                downloadButton.onclick = () => downloadFile(file.name);
+
+                div.appendChild(downloadButton);
+                fileList.appendChild(div);
+            });
+        }
+
+        async function downloadFile(filename) {
+            const response = await fetch(`/download/${filename}`);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const messageDiv = document.getElementById('uploadMessage');
+            if (response.ok) {
+                messageDiv.textContent = 'File uploaded successfully';
+                messageDiv.style.color = 'green';
+                await fetchFileList();
+            } else {
+                const errorText = await response.text();
+                messageDiv.textContent = `Error: ${errorText}`;
+                messageDiv.style.color = 'red';
+            }
+        });
+
+        document.getElementById('deleteForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const filename = event.target.filename.value;
+            const response = await fetch('/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ filename }),
+            });
+
+            const messageDiv = document.getElementById('deleteMessage');
+            if (response.ok) {
+                messageDiv.textContent = 'File deleted successfully';
+                messageDiv.style.color = 'green';
+                await fetchFileList();
+            } else {
+                const errorText = await response.text();
+                messageDiv.textContent = `Error: ${errorText}`;
+                messageDiv.style.color = 'red';
+            }
+        });
+
+        // Fetch the file list on page load
+        fetchFileList();
+    </script>
+</body>
+
+</html>
